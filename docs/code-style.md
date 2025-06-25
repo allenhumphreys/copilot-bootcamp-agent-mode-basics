@@ -41,6 +41,7 @@ Organize imports in the following order, with a blank line between each group:
 4. CSS/SCSS and other assets
 
 Example:
+
 ```javascript
 // External dependencies
 import React, { useState, useEffect } from 'react';
@@ -71,6 +72,7 @@ For React components, follow this organization:
 5. Export statement
 
 Example:
+
 ```javascript
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
@@ -82,15 +84,15 @@ import './Button.css';
  */
 function Button({ text, variant, onClick }) {
   const [isPressed, setIsPressed] = useState(false);
-  
+
   const handleClick = () => {
     setIsPressed(true);
     onClick();
     setTimeout(() => setIsPressed(false), 200);
   };
-  
+
   return (
-    <button 
+    <button
       className={`btn btn-${variant} ${isPressed ? 'btn-pressed' : ''}`}
       onClick={handleClick}
     >
@@ -122,10 +124,11 @@ export default Button;
 - Document side effects and any assumptions
 
 Example:
+
 ```javascript
 /**
  * Fetches user data from the API.
- * 
+ *
  * @param {string} userId - The ID of the user to fetch
  * @param {Object} options - Additional options for the request
  * @param {boolean} options.includeProfile - Whether to include profile data
@@ -164,14 +167,102 @@ For more guidance on testing, see the [Testing Practices](./testing-practices.md
 
 ## Linting and Formatting
 
-This project uses ESLint and Prettier to enforce code style. Always run linting before committing code:
+This project uses ESLint and Prettier to enforce code style and catch potential issues:
+
+- **ESLint**: Analyzes code for potential errors, bugs, stylistic issues, and suspicious constructs
+- **Prettier**: An opinionated code formatter that ensures consistent code formatting
+
+### Configuration
+
+- **ESLint Configuration**: `.eslintrc.js` at the root level with overrides for different environments
+- **Prettier Configuration**: `.prettierrc` at the root level
+- **Ignore Files**: `.eslintignore` and `.prettierignore` to exclude certain files and directories
+
+### Available Scripts
+
+#### Root Level Scripts
+
+```bash
+npm run lint          # Check for linting issues across the entire monorepo
+npm run lint:fix      # Automatically fix linting issues where possible
+npm run prettier      # Check code formatting
+npm run prettier:fix  # Automatically format code
+npm run format        # Run both prettier:fix and lint:fix
+```
+
+#### Package-Specific Scripts
+
+```bash
+# Frontend
+npm run lint --workspace=frontend
+npm run lint:fix --workspace=frontend
+npm run prettier --workspace=frontend
+npm run prettier:fix --workspace=frontend
+npm run format --workspace=frontend
+
+# Backend
+npm run lint --workspace=backend
+npm run lint:fix --workspace=backend
+npm run prettier --workspace=backend
+npm run prettier:fix --workspace=backend
+npm run format --workspace=backend
+```
+
+### ESLint Rules
+
+The project uses different ESLint configurations for different parts of the codebase:
+
+#### Frontend (React)
+
+- Extends `eslint:recommended`, `plugin:react/recommended`, `plugin:react-hooks/recommended`, `plugin:jsx-a11y/recommended`
+- Enforces React best practices and accessibility guidelines
+- Warns about unused prop types and React hooks dependencies
+
+#### Backend (Node.js)
+
+- Extends `eslint:recommended`
+- Allows console statements (common in server-side code)
+- Enforces modern JavaScript practices
+
+#### Test Files
+
+- Special configuration for Jest test files
+- Allows console statements for debugging tests
+
+### Prettier Configuration
+
+The project uses the following Prettier settings:
+
+- Single quotes for strings
+- Semicolons at the end of statements
+- 2-space indentation
+- 100-character line width
+- Trailing commas for ES5-compatible syntax
+- LF line endings
+
+### Running Linting Before Commits
+
+Always run linting before committing code to ensure code quality:
 
 ```bash
 npm run lint
 ```
 
-To automatically fix lint issues:
+To automatically fix most issues:
 
 ```bash
-npm run lint:fix
+npm run format
 ```
+
+### Integration with VS Code
+
+For the best development experience, install the following VS Code extensions:
+
+- ESLint
+- Prettier - Code formatter
+
+These extensions will provide real-time linting feedback and can format your code on save.
+
+## Legacy Formatting Guidelines
+
+This project previously used these manual formatting guidelines. With ESLint and Prettier now configured, these are automatically enforced:

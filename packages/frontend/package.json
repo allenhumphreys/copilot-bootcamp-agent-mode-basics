@@ -14,13 +14,12 @@
     "build": "react-scripts build",
     "test": "react-scripts test --coverage --watchAll=false",
     "test:watch": "react-scripts test --coverage",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx",
+    "lint:fix": "eslint src --ext .js,.jsx --fix",
+    "prettier": "prettier --check src",
+    "prettier:fix": "prettier --write src",
+    "format": "npm run prettier:fix && npm run lint:fix"
   },
   "browserslist": {
     "production": [

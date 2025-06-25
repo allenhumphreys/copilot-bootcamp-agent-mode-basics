@@ -14,12 +14,14 @@ The project follows a monorepo architecture with the following structure:
 ## Technology Stack
 
 ### Frontend
+
 - React
 - React DOM
 - CSS for styling
 - Jest for testing
 
 ### Backend
+
 - Node.js
 - Express.js
 - Jest for testing
@@ -27,13 +29,24 @@ The project follows a monorepo architecture with the following structure:
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm (v7 or higher)
 
 ### Installation
+
 1. Clone the repository
 2. Run `npm install` at the root of the project to install all dependencies
 3. Start the development environment using `npm run start`
+
+### Code Quality Tools
+
+The project includes ESLint and Prettier for code linting and formatting:
+
+- **ESLint**: Enforces coding standards and catches potential issues
+- **Prettier**: Ensures consistent code formatting
+- Run `npm run lint` to check for issues
+- Run `npm run format` to automatically fix formatting and linting issues
 
 ## Development Workflow
 
@@ -50,6 +63,7 @@ Deployment instructions and environments will be covered in the bootcamp session
 ## Next Steps
 
 Refer to the other documentation files for more detailed guidance:
+
 - [General Guidelines](./general-guidelines.md)
 - [Code Style](./code-style.md)
 - [Testing Practices](./testing-practices.md)

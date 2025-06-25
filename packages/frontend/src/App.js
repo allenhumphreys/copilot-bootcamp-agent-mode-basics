@@ -32,10 +32,10 @@ function App() {
   /**
    * Handles deletion of an item
    * Makes API call to DELETE endpoint and updates UI state
-   * 
+   *
    * @param {number} itemId - The ID of the item to delete
    */
-  const handleDelete = async (itemId) => {
+  const handleDelete = async itemId => {
     try {
       const response = await fetch(`/api/items/${itemId}`, {
         method: 'DELETE',
@@ -55,7 +55,7 @@ function App() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (!newItem.trim()) return;
 
@@ -87,7 +87,7 @@ function App() {
         <h1>Hello World</h1>
         <p>Connected to in-memory database</p>
       </header>
-      
+
       <main>
         <section className="add-item-section">
           <h2>Add New Item</h2>
@@ -95,7 +95,7 @@ function App() {
             <input
               type="text"
               value={newItem}
-              onChange={(e) => setNewItem(e.target.value)}
+              onChange={e => setNewItem(e.target.value)}
               placeholder="Enter item name"
             />
             <button type="submit">Add Item</button>
@@ -109,18 +109,21 @@ function App() {
           {!loading && !error && (
             <ul>
               {data.length > 0 ? (
-                data.map((item) => (
-                  <li key={item.id} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    marginBottom: '8px',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}>
+                data.map(item => (
+                  <li
+                    key={item.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px',
+                      padding: '8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                    }}
+                  >
                     <span>{item.name}</span>
-                    <button 
+                    <button
                       onClick={() => handleDelete(item.id)}
                       style={{
                         backgroundColor: '#dc3545',
@@ -130,10 +133,12 @@ function App() {
                         borderRadius: '4px',
                         cursor: 'pointer',
                         fontSize: '14px',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
                       }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-                      onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+                      onMouseOver={e => (e.target.style.backgroundColor = '#c82333')}
+                      onMouseOut={e => (e.target.style.backgroundColor = '#dc3545')}
+                      onFocus={e => (e.target.style.backgroundColor = '#c82333')}
+                      onBlur={e => (e.target.style.backgroundColor = '#dc3545')}
                     >
                       Delete
                     </button>

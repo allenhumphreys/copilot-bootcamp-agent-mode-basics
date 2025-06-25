@@ -1,0 +1,8 @@
+node_modules/
+build/
+dist/
+coverage/
+*.min.js
+.eslintrc.js
+jest.config.js
+packages/frontend/public/

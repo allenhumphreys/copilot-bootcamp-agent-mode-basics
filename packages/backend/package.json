@@ -5,7 +5,12 @@
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon src/index.js",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles",
+    "lint": "eslint src --ext .js",
+    "lint:fix": "eslint src --ext .js --fix",
+    "prettier": "prettier --check src",
+    "prettier:fix": "prettier --write src",
+    "format": "npm run prettier:fix && npm run lint:fix"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",

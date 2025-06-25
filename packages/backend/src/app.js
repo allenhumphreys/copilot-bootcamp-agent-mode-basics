@@ -47,14 +47,14 @@ app.get('/api/items', (req, res) => {
 app.post('/api/items', (req, res) => {
   try {
     const { name } = req.body;
-    
+
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return res.status(400).json({ error: 'Item name is required' });
     }
-    
+
     const result = insertStmt.run(name);
     const id = result.lastInsertRowid;
-    
+
     const newItem = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
     res.status(201).json(newItem);
   } catch (error) {
@@ -66,7 +66,7 @@ app.post('/api/items', (req, res) => {
 /**
  * DELETE endpoint for removing items by ID
  * Handles item deletion with proper validation and error handling
- * 
+ *
  * @route DELETE /api/items/:id
  * @param {string} id - The ID of the item to delete
  * @returns {Object} Success message with deleted item info or error
@@ -74,30 +74,30 @@ app.post('/api/items', (req, res) => {
 app.delete('/api/items/:id', (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Convert to integer and validate
     const itemId = parseInt(id, 10);
     if (isNaN(itemId) || itemId <= 0) {
       return res.status(400).json({ error: 'Invalid item ID' });
     }
-    
+
     // Check if item exists first
     const existingItem = db.prepare('SELECT * FROM items WHERE id = ?').get(itemId);
     if (!existingItem) {
       return res.status(404).json({ error: 'Item not found' });
     }
-    
+
     // Delete the item
     const deleteStmt = db.prepare('DELETE FROM items WHERE id = ?');
     const result = deleteStmt.run(itemId);
-    
+
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Item not found' });
     }
-    
-    res.status(200).json({ 
+
+    res.status(200).json({
       message: 'Item deleted successfully',
-      deletedItem: existingItem 
+      deletedItem: existingItem,
     });
   } catch (error) {
     console.error('Error deleting item:', error);
