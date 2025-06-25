@@ -29,6 +29,32 @@ function App() {
     }
   };
 
+  /**
+   * Handles deletion of an item
+   * Makes API call to DELETE endpoint and updates UI state
+   * 
+   * @param {number} itemId - The ID of the item to delete
+   */
+  const handleDelete = async (itemId) => {
+    try {
+      const response = await fetch(`/api/items/${itemId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete item');
+      }
+
+      // Remove the item from the local state
+      setData(prevData => prevData.filter(item => item.id !== itemId));
+      setError(null);
+    } catch (err) {
+      setError('Error deleting item: ' + err.message);
+      console.error('Error deleting item:', err);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newItem.trim()) return;
@@ -84,7 +110,34 @@ function App() {
             <ul>
               {data.length > 0 ? (
                 data.map((item) => (
-                  <li key={item.id}>{item.name}</li>
+                  <li key={item.id} style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    marginBottom: '8px',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px'
+                  }}>
+                    <span>{item.name}</span>
+                    <button 
+                      onClick={() => handleDelete(item.id)}
+                      style={{
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+                      onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+                    >
+                      Delete
+                    </button>
+                  </li>
                 ))
               ) : (
                 <p>No items found. Add some!</p>
