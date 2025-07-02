@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+} from '@mui/material';
+import { Delete } from '@mui/icons-material';
 
 function App() {
   const [data, setData] = useState([]);
@@ -109,66 +120,33 @@ function App() {
           {!loading && !error && (
             <>
               {data.length > 0 ? (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th
-                        style={{
-                          padding: '12px',
-                          textAlign: 'left',
-                          borderBottom: '2px solid #ddd',
-                        }}
-                      >
-                        Item Name
-                      </th>
-                      <th
-                        style={{
-                          padding: '12px',
-                          textAlign: 'center',
-                          borderBottom: '2px solid #ddd',
-                        }}
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.map(item => (
-                      <tr key={item.id}>
-                        <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
-                          {item.name}
-                        </td>
-                        <td
-                          style={{
-                            padding: '12px',
-                            borderBottom: '1px solid #eee',
-                            textAlign: 'center',
-                          }}
-                        >
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            style={{
-                              backgroundColor: '#dc3545',
-                              color: 'white',
-                              border: 'none',
-                              padding: '6px 12px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              fontWeight: 'bold',
-                            }}
-                            onMouseOver={e => (e.target.style.backgroundColor = '#c82333')}
-                            onMouseOut={e => (e.target.style.backgroundColor = '#dc3545')}
-                            onFocus={e => (e.target.style.backgroundColor = '#c82333')}
-                            onBlur={e => (e.target.style.backgroundColor = '#dc3545')}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Item Name</TableCell>
+                        <TableCell align="center">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {data.map(item => (
+                        <TableRow key={item.id}>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell align="center">
+                            <Button
+                              variant="contained"
+                              color="error"
+                              startIcon={<Delete />}
+                              onClick={() => handleDelete(item.id)}
+                            >
+                              Delete
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               ) : (
                 <p>No items found. Add some!</p>
               )}
