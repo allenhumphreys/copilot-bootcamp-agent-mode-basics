@@ -75,6 +75,11 @@ app.delete('/api/items/:id', (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate that the ID is a valid integer string
+    if (!/^\d+$/.test(id)) {
+      return res.status(400).json({ error: 'Invalid item ID' });
+    }
+
     // Convert to integer and validate
     const itemId = parseInt(id, 10);
     if (isNaN(itemId) || itemId <= 0) {
