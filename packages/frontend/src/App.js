@@ -107,47 +107,72 @@ function App() {
           {loading && <p>Loading data...</p>}
           {error && <p className="error">{error}</p>}
           {!loading && !error && (
-            <ul>
+            <>
               {data.length > 0 ? (
-                data.map(item => (
-                  <li
-                    key={item.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '8px',
-                      padding: '8px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    <span>{item.name}</span>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      style={{
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                      }}
-                      onMouseOver={e => (e.target.style.backgroundColor = '#c82333')}
-                      onMouseOut={e => (e.target.style.backgroundColor = '#dc3545')}
-                      onFocus={e => (e.target.style.backgroundColor = '#c82333')}
-                      onBlur={e => (e.target.style.backgroundColor = '#dc3545')}
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th
+                        style={{
+                          padding: '12px',
+                          textAlign: 'left',
+                          borderBottom: '2px solid #ddd',
+                        }}
+                      >
+                        Item Name
+                      </th>
+                      <th
+                        style={{
+                          padding: '12px',
+                          textAlign: 'center',
+                          borderBottom: '2px solid #ddd',
+                        }}
+                      >
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.map(item => (
+                      <tr key={item.id}>
+                        <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
+                          {item.name}
+                        </td>
+                        <td
+                          style={{
+                            padding: '12px',
+                            borderBottom: '1px solid #eee',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            style={{
+                              backgroundColor: '#dc3545',
+                              color: 'white',
+                              border: 'none',
+                              padding: '6px 12px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                            }}
+                            onMouseOver={e => (e.target.style.backgroundColor = '#c82333')}
+                            onMouseOut={e => (e.target.style.backgroundColor = '#dc3545')}
+                            onFocus={e => (e.target.style.backgroundColor = '#c82333')}
+                            onBlur={e => (e.target.style.backgroundColor = '#dc3545')}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               ) : (
                 <p>No items found. Add some!</p>
               )}
-            </ul>
+            </>
           )}
         </section>
       </main>
