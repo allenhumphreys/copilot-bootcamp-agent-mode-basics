@@ -56,16 +56,16 @@ app.post('/api/items', (req, res) => {
     const id = result.lastInsertRowid;
 
     const newItem = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
-    res.status(201).json(newItem);
+    return res.status(201).json(newItem);
   } catch (error) {
     console.error('Error creating item:', error);
-    res.status(500).json({ error: 'Failed to create item' });
+    return res.status(500).json({ error: 'Failed to create item' });
   }
 });
 
 /**
  * DELETE endpoint for removing items by ID
- * Handles item deletion with proper validation and error handling
+ * Only allows deletion of items older than 5 days
  *
  * @route DELETE /api/items/:id
  * @param {string} id - The ID of the item to delete
@@ -92,6 +92,20 @@ app.delete('/api/items/:id', (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
 
+    // Check if item is old enough to delete (older than 5 days)
+    const itemCreatedAt = new Date(existingItem.created_at).getTime();
+    const fiveDaysInMs = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
+    const ageInMs = Date.now() - itemCreatedAt;
+
+    if (ageInMs < fiveDaysInMs) {
+      const ageInDays = Math.floor(ageInMs / (24 * 60 * 60 * 1000));
+      return res.status(400).json({
+        error: 'Item must be older than 5 days to delete',
+        itemAge: ageInDays,
+        requiredAge: 5,
+      });
+    }
+
     // Delete the item
     const deleteStmt = db.prepare('DELETE FROM items WHERE id = ?');
     const result = deleteStmt.run(itemId);
@@ -100,13 +114,13 @@ app.delete('/api/items/:id', (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Item deleted successfully',
       deletedItem: existingItem,
     });
   } catch (error) {
     console.error('Error deleting item:', error);
-    res.status(500).json({ error: 'Failed to delete item' });
+    return res.status(500).json({ error: 'Failed to delete item' });
   }
 });
 

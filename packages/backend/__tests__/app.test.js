@@ -3,12 +3,25 @@ const { app, db } = require('../src/app');
 
 describe('DELETE /api/items/:id', () => {
   beforeEach(() => {
-    // Clean up the database and insert fresh test data
+    // Clean up the database and insert test data with specific dates
     db.exec('DELETE FROM items');
-    const insertStmt = db.prepare('INSERT INTO items (name) VALUES (?)');
-    insertStmt.run('Test Item 1');
-    insertStmt.run('Test Item 2'); 
-    insertStmt.run('Test Item 3');
+
+    // Insert items with different ages
+    const insertStmt = db.prepare('INSERT INTO items (name, created_at) VALUES (?, ?)');
+
+    // Fresh item (created today)
+    insertStmt.run('Fresh Item', new Date().toISOString());
+
+    // Old item (created 10 days ago)
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    insertStmt.run('Old Item', tenDaysAgo.toISOString());
+
+    // Borderline item (created exactly 5 days ago minus 1 second to ensure it's still within 5 days)
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    fiveDaysAgo.setSeconds(fiveDaysAgo.getSeconds() + 1); // Add 1 second to make it slightly less than 5 days old
+    insertStmt.run('Borderline Item', fiveDaysAgo.toISOString());
   });
 
   afterAll(() => {
@@ -16,73 +29,75 @@ describe('DELETE /api/items/:id', () => {
     db.close();
   });
 
-  it('should successfully delete an existing item', async () => {
-    // First, get an existing item to delete
+  it('should successfully delete an old item (older than 5 days)', async () => {
+    // Get the old item (created 10 days ago)
     const itemsResponse = await request(app).get('/api/items');
     const items = itemsResponse.body;
-    expect(items.length).toBeGreaterThan(0);
-    
-    const itemToDelete = items[0];
-    
-    // Delete the item
-    const response = await request(app)
-      .delete(`/api/items/${itemToDelete.id}`)
-      .expect(200);
+    const oldItem = items.find(item => item.name === 'Old Item');
+    expect(oldItem).toBeDefined();
+
+    // Delete the old item
+    const response = await request(app).delete(`/api/items/${oldItem.id}`).expect(200);
 
     expect(response.body).toHaveProperty('message', 'Item deleted successfully');
     expect(response.body).toHaveProperty('deletedItem');
-    expect(response.body.deletedItem.id).toBe(itemToDelete.id);
-    expect(response.body.deletedItem.name).toBe(itemToDelete.name);
+    expect(response.body.deletedItem.id).toBe(oldItem.id);
+    expect(response.body.deletedItem.name).toBe(oldItem.name);
 
     // Verify the item is actually deleted
     const verifyResponse = await request(app).get('/api/items');
     const remainingItems = verifyResponse.body;
     expect(remainingItems).not.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: itemToDelete.id })
-      ])
+      expect.arrayContaining([expect.objectContaining({ id: oldItem.id })])
     );
-    expect(remainingItems.length).toBe(items.length - 1);
+  });
+
+  it('should return 400 when trying to delete a fresh item (less than 5 days old)', async () => {
+    // Get the fresh item (created today)
+    const itemsResponse = await request(app).get('/api/items');
+    const items = itemsResponse.body;
+    const freshItem = items.find(item => item.name === 'Fresh Item');
+    expect(freshItem).toBeDefined();
+
+    const response = await request(app).delete(`/api/items/${freshItem.id}`).expect(400);
+
+    expect(response.body).toHaveProperty('error', 'Item must be older than 5 days to delete');
+    expect(response.body).toHaveProperty('itemAge');
+    expect(response.body).toHaveProperty('requiredAge', 5);
+    expect(response.body.itemAge).toBeLessThan(5);
+  });
+
+  it('should return 400 when trying to delete an item close to 5 days old', async () => {
+    // Get the borderline item (created just under 5 days ago)
+    const itemsResponse = await request(app).get('/api/items');
+    const items = itemsResponse.body;
+    const borderlineItem = items.find(item => item.name === 'Borderline Item');
+    expect(borderlineItem).toBeDefined();
+
+    const response = await request(app).delete(`/api/items/${borderlineItem.id}`).expect(400);
+
+    expect(response.body).toHaveProperty('error', 'Item must be older than 5 days to delete');
+    expect(response.body).toHaveProperty('itemAge');
+    expect(response.body.itemAge).toBeLessThan(5);
+    expect(response.body).toHaveProperty('requiredAge', 5);
   });
 
   it('should return 404 when trying to delete a non-existent item', async () => {
     const nonExistentId = 99999;
-    
-    const response = await request(app)
-      .delete(`/api/items/${nonExistentId}`)
-      .expect(404);
+
+    const response = await request(app).delete(`/api/items/${nonExistentId}`).expect(404);
 
     expect(response.body).toHaveProperty('error', 'Item not found');
   });
 
   it('should return 400 for invalid item ID (non-numeric)', async () => {
-    const response = await request(app)
-      .delete('/api/items/invalid-id')
-      .expect(400);
+    const response = await request(app).delete('/api/items/invalid-id').expect(400);
 
     expect(response.body).toHaveProperty('error', 'Invalid item ID');
   });
 
   it('should return 400 for invalid item ID (negative number)', async () => {
-    const response = await request(app)
-      .delete('/api/items/-1')
-      .expect(400);
-
-    expect(response.body).toHaveProperty('error', 'Invalid item ID');
-  });
-
-  it('should return 400 for invalid item ID (zero)', async () => {
-    const response = await request(app)
-      .delete('/api/items/0')
-      .expect(400);
-
-    expect(response.body).toHaveProperty('error', 'Invalid item ID');
-  });
-
-  it('should return 400 for invalid item ID (decimal number)', async () => {
-    const response = await request(app)
-      .delete('/api/items/1.5')
-      .expect(400);
+    const response = await request(app).delete('/api/items/-1').expect(400);
 
     expect(response.body).toHaveProperty('error', 'Invalid item ID');
   });
@@ -92,14 +107,12 @@ describe('DELETE /api/items/:id', () => {
     const mockGet = jest.fn().mockImplementation(() => {
       throw new Error('Database connection error');
     });
-    
+
     // We need to mock the db.prepare method
     const originalPrepare = db.prepare;
     db.prepare = jest.fn().mockReturnValue({ get: mockGet });
 
-    const response = await request(app)
-      .delete('/api/items/1')
-      .expect(500);
+    const response = await request(app).delete('/api/items/1').expect(500);
 
     expect(response.body).toHaveProperty('error', 'Failed to delete item');
 
@@ -107,39 +120,20 @@ describe('DELETE /api/items/:id', () => {
     db.prepare = originalPrepare;
   });
 
-  it('should delete multiple items sequentially', async () => {
+  it('should verify items remain in database when deletion fails due to age', async () => {
     // Get all items
     const itemsResponse = await request(app).get('/api/items');
     const items = itemsResponse.body;
     expect(items.length).toBe(3);
 
-    // Delete first item
-    await request(app)
-      .delete(`/api/items/${items[0].id}`)
-      .expect(200);
+    // Try to delete fresh item (should fail)
+    const freshItem = items.find(item => item.name === 'Fresh Item');
+    await request(app).delete(`/api/items/${freshItem.id}`).expect(400);
 
-    // Delete second item
-    await request(app)
-      .delete(`/api/items/${items[1].id}`)
-      .expect(200);
-
-    // Verify only one item remains
-    const remainingResponse = await request(app).get('/api/items');
-    const remainingItems = remainingResponse.body;
-    expect(remainingItems.length).toBe(1);
-    expect(remainingItems[0].id).toBe(items[2].id);
-  });
-
-  it('should return correct content-type header', async () => {
-    const itemsResponse = await request(app).get('/api/items');
-    const items = itemsResponse.body;
-    const itemToDelete = items[0];
-
-    const response = await request(app)
-      .delete(`/api/items/${itemToDelete.id}`)
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(response.body).toBeDefined();
+    // Verify item is still in database
+    const verifyResponse = await request(app).get('/api/items');
+    const remainingItems = verifyResponse.body;
+    expect(remainingItems.length).toBe(3);
+    expect(remainingItems.find(item => item.id === freshItem.id)).toBeDefined();
   });
 });

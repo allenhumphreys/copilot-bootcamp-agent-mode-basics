@@ -11,12 +11,36 @@ import {
   Button,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
+import { DateTime } from 'luxon';
 
 function App() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newItem, setNewItem] = useState('');
+
+  /**
+   * Calculate the age of an item in days
+   * @param {string} createdAt - SQLite timestamp format: "2025-07-03 15:17:11"
+   * @returns {number} Age in days
+   */
+  const calculateAge = createdAt => {
+    // Parse SQLite timestamp format as UTC using Luxon
+    const itemDate = DateTime.fromSQL(createdAt, { zone: 'utc' });
+    const now = DateTime.now();
+    const ageInDays = now.diff(itemDate, 'days').days;
+    return Math.floor(ageInDays);
+  };
+
+  /**
+   * Format date for display
+   * @param {string} dateString - SQLite timestamp format: "2025-07-03 15:17:11"
+   * @returns {string} Formatted date
+   */
+  const formatDate = dateString => {
+    const date = DateTime.fromSQL(dateString, { zone: 'utc' });
+    return date.toLocaleString(DateTime.DATE_SHORT);
+  };
 
   useEffect(() => {
     fetchData();
@@ -34,7 +58,6 @@ function App() {
       setError(null);
     } catch (err) {
       setError('Failed to fetch data: ' + err.message);
-      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
@@ -43,6 +66,7 @@ function App() {
   /**
    * Handles deletion of an item
    * Makes API call to DELETE endpoint and updates UI state
+   * Handles age restriction errors specifically
    *
    * @param {number} itemId - The ID of the item to delete
    */
@@ -54,6 +78,14 @@ function App() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+
+        // Handle age restriction error specifically
+        if (response.status === 400 && errorData.itemAge !== undefined) {
+          throw new Error(
+            `${errorData.error}. Item is ${errorData.itemAge} days old, but must be at least ${errorData.requiredAge} days old.`
+          );
+        }
+
         throw new Error(errorData.error || 'Failed to delete item');
       }
 
@@ -62,7 +94,6 @@ function App() {
       setError(null);
     } catch (err) {
       setError('Error deleting item: ' + err.message);
-      console.error('Error deleting item:', err);
     }
   };
 
@@ -88,7 +119,6 @@ function App() {
       setNewItem('');
     } catch (err) {
       setError('Error adding item: ' + err.message);
-      console.error('Error adding item:', err);
     }
   };
 
@@ -125,25 +155,39 @@ function App() {
                     <TableHead>
                       <TableRow>
                         <TableCell>Item Name</TableCell>
+                        <TableCell>Created Date</TableCell>
+                        <TableCell>Age (Days)</TableCell>
                         <TableCell align="center">Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {data.map(item => (
-                        <TableRow key={item.id}>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell align="center">
-                            <Button
-                              variant="contained"
-                              color="error"
-                              startIcon={<Delete />}
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              Delete
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {data.map(item => {
+                        const age = calculateAge(item.created_at);
+                        const canDelete = age >= 5;
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell>{item.name}</TableCell>
+                            <TableCell>{formatDate(item.created_at)}</TableCell>
+                            <TableCell>{age}</TableCell>
+                            <TableCell align="center">
+                              <Button
+                                variant="contained"
+                                color="error"
+                                startIcon={<Delete />}
+                                onClick={() => handleDelete(item.id)}
+                                disabled={!canDelete}
+                                title={
+                                  !canDelete
+                                    ? `Item must be at least 5 days old to delete (currently ${age} days old)`
+                                    : 'Delete item'
+                                }
+                              >
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </TableContainer>

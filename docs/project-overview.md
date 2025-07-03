@@ -17,6 +17,8 @@ The project follows a monorepo architecture with the following structure:
 
 - React
 - React DOM
+- Material-UI (MUI) for component library
+- Luxon for date parsing and manipulation
 - CSS for styling
 - Jest for testing
 
@@ -24,7 +26,12 @@ The project follows a monorepo architecture with the following structure:
 
 - Node.js
 - Express.js
+- SQLite with better-sqlite3 for in-memory database
 - Jest for testing
+
+### Date Handling
+
+The application uses Luxon for all date parsing and manipulation in the frontend to ensure consistent handling of SQLite timestamp formats (`YYYY-MM-DD HH:MM:SS`). SQLite timestamps are treated as UTC and properly converted for display in the user's local timezone.
 
 ## Getting Started
 
